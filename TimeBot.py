@@ -79,12 +79,14 @@ async def pay(interaction: discord.Interaction, recipient: discord.User, amount:
     user_balance[user_id] -= amount
     user_balance[recipient_id] = user_balance.get(recipient_id, 0) + amount
     save_user_balance()
+    await interaction.response.send_message(f"${amount} transferred succesfully to {recipient.nick}.", ephemeral=True)
     
 
 #Literally just got rid of all of the new fancy balance code, rome wasn't built in a day D:
 
 user_balance_file = 'user_balances.json'
 message_multiplier_file = 'message_multiplier.json'
+guild = client.get_guild(SERVER_ID)
 
 #Function to load the user balance file.
 def load_user_balance():
