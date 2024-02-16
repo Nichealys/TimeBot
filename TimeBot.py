@@ -57,10 +57,11 @@ async def ping(interaction):
     description="Shows your balance.",
     guild=discord.Object(id=SERVER_ID)
 )
-async def balance(interaction: discord.Interaction):
-    user_id = str(interaction.user.id)
+async def balance(interaction: discord.Interaction, user: discord.User):
+    user_id = str(user.id)
     balance = user_balance.get(user_id, 0)
-    await interaction.response.send_message(f"Your balance: ${balance}", ephemeral=True)
+    await interaction.response.send_message(f"{user.nick}'s Balance: ${balance}", ephemeral=True)
+    print(user)
 
 #/pay command
 @tree.command(
@@ -86,7 +87,7 @@ async def pay(interaction: discord.Interaction, recipient: discord.User, amount:
 #USER DATA STORAGE
 
 user_balance_file = 'user_balances.json'
-user_green_token_balance_file = 'user_green_token_balances.json'
+user_green_token_file = 'user_green_token_balances.json'
 message_multiplier_file = 'message_multiplier.json'
 
 #Function to load the user balance file.
