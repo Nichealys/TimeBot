@@ -36,6 +36,7 @@ async def on_message(message):
     user_id = str(message.author.id)
     if message.guild:
         user_balance.setdefault(user_id, 0)
+        message_multiplier.setdefault(user_id, 1)
         user_balance[user_id] += (1 * message_multiplier[user_id])
         save_user_balance()
     
@@ -60,6 +61,25 @@ async def balance(interaction: discord.Interaction):
     balance = user_balance.get(user_id, 0)
     await interaction.response.send_message(f"Your balance: ${balance}", ephemeral=True)
 
+#/pay command
+@tree.command(
+    name="pay",
+    description="Transfer money from your inventory to someone else's inventory.",
+    guild=discord.Object(id=SERVER_ID)
+)
+async def pay(interaction: discord.Interaction, recipient: discord.User, amount: int):
+    user_id = str(interaction.user.id)
+    recipient_id = str(recipient.id)
+    if amount <= 0:
+        await interaction.response.send_message("Please provide a valid positive amount to transfer.", ephemeral=True)
+        return
+    if user_id not in user_balance or user_balance[user_id] < amount:
+        await interaction.response.send_message("You don't have enough to transfer that amount.", ephemeral=True)
+        return
+    user_balance[user_id] -= amount
+    user_balance[recipient_id] = user_balance.get(recipient_id, 0) + amount
+    save_user_balance()
+    
 
 #Literally just got rid of all of the new fancy balance code, rome wasn't built in a day D:
 
