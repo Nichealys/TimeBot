@@ -36,7 +36,7 @@ async def on_message(message):
     user_id = str(message.author.id)
     if message.guild:
         user_balance.setdefault(user_id, 0)
-        user_balance[user_id] += 1
+        user_balance[user_id] += (1 * message_multiplier[user_id])
         save_user_balance()
     
 
@@ -64,6 +64,7 @@ async def balance(interaction: discord.Interaction):
 #Literally just got rid of all of the new fancy balance code, rome wasn't built in a day D:
 
 user_balance_file = 'user_balances.json'
+message_multiplier_file = 'message_multiplier.json'
 
 #Function to load the user balance file.
 def load_user_balance():
@@ -80,8 +81,25 @@ def save_user_balance():
             json.dump(user_balance, file)
     except FileNotFoundError:
         return {}
+
+#Function to load the message multiplier file.
+def load_message_multiplier():
+    try:
+        with open(message_multiplier_file, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}
+
+#Function to save message multiplier to the multiplier file.
+def save_message_multiplier():
+    try:
+        with open(message_multiplier_file, 'w') as file:
+            json.dump(message_multiplier, file)
+    except FileNotFoundError:
+        return {}
     
 user_balance = load_user_balance()
+message_multiplier = load_message_multiplier()
 
 
 client.run(BOT_TOKEN)
