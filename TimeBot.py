@@ -40,6 +40,7 @@ async def on_message(message):
         user_balance[user_id] += (1 * message_multiplier[user_id])
         save_user_balance()
     
+#COMMANDS
 
 #/ping command
 @tree.command(
@@ -82,11 +83,11 @@ async def pay(interaction: discord.Interaction, recipient: discord.User, amount:
     await interaction.response.send_message(f"${amount} transferred succesfully to {recipient.nick}.", ephemeral=True)
     
 
-#Literally just got rid of all of the new fancy balance code, rome wasn't built in a day D:
+#USER DATA STORAGE
 
 user_balance_file = 'user_balances.json'
+user_green_token_balance_file = 'user_green_token_balances.json'
 message_multiplier_file = 'message_multiplier.json'
-guild = client.get_guild(SERVER_ID)
 
 #Function to load the user balance file.
 def load_user_balance():
@@ -119,8 +120,25 @@ def save_message_multiplier():
             json.dump(message_multiplier, file)
     except FileNotFoundError:
         return {}
+
+#Function to load the green token balance file.
+def load_user_green_token_balance():
+    try:
+        with open(user_green_token_file, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}
     
+#Function to save green token balance to the balance file.
+def save_user_green_token_balance():
+    try:
+        with open(user_green_token_balance_file, 'w') as file:
+            json.dump(user_balance, file)
+    except FileNotFoundError:
+        return {}
+
 user_balance = load_user_balance()
+user_green_token_balance = load_user_green_token_balance()
 message_multiplier = load_message_multiplier()
 
 
