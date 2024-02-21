@@ -89,6 +89,8 @@ async def pay(interaction: discord.Interaction, recipient: discord.User, amount:
 user_balance_file = 'user_balances.json'
 user_green_token_file = 'user_green_token_balances.json'
 message_multiplier_file = 'message_multiplier.json'
+lottery_state_file = 'lottery_state.json'
+lottery_tickets_file = 'lottery_tickets.json'
 
 #Function to load the user balance file.
 def load_user_balance():
@@ -138,9 +140,42 @@ def save_user_green_token_balance():
     except FileNotFoundError:
         return {}
 
+#Function to load the lottery state.
+def load_lottery_state():
+    try:
+        with open(lottery_state_file, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {'is_active': False, 'pot': 0}
+
+#Function to save the lottery state
+def save_lottery_state(state):
+    with open(lottery_state_file, 'w') as file:
+        json.dump(state, file)
+    except FileNotFoundError:
+        return {}
+
+#Function to load lottery ticket balances
+def load_lottery_tickets():
+    try:
+        with open(lottery_tickets_file, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}
+
+#Function to save the lottery ticket balances
+def save_lottery_tickets(tickets):
+    with open(lottery_tickets_file, 'w') as file:
+        json.dump(tickets, file)
+    except FileNotFoundError:
+        return {}
+
+
 user_balance = load_user_balance()
 user_green_token_balance = load_user_green_token_balance()
 message_multiplier = load_message_multiplier()
+lottery_state = load_lottery_state()
+lottery_tickets = load_lottery_tickets()
 
 
 client.run(BOT_TOKEN)
