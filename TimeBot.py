@@ -152,7 +152,6 @@ async def stop_lottery(interaction: discord.Interaction):
 async def ping(interaction):
     await interaction.response.send_message(f"Pong! Latency: {round(client.latency * 1000)}ms", ephemeral=True)
 
-#/balance command
 @tree.command(
     name="balance",
     description="Shows your balance.",
@@ -160,9 +159,9 @@ async def ping(interaction):
 )
 async def balance(interaction: discord.Interaction, user: discord.User):
     user_id = str(user.id)
-    balance = user_balance.get(user_id, 0)
-    await interaction.response.send_message(f"{user.nick}'s Balance: ${balance}", ephemeral=True)
-    print(user)
+    dollarbalance = user_balance.get(user_id, 0)
+    greentokenbalance = user_green_token_balance.get(user_id, 0)
+    await interaction.response.send_message(f"**{user.nick}**\n$TIME Balance: ${dollarbalance}\nGreen Tokens: {greentokenbalance}", ephemeral=True)
 
 #/pay command
 @tree.command(
