@@ -41,6 +41,107 @@ async def on_message(message):
         save_user_balance()
     
 #COMMANDS
+        
+#/stats command
+@tree.command(
+    name="stats",
+    description="Displays statistics about the bot, ecomonomy, and user.",
+    guild=discord.Object(id=SERVER_ID)
+)
+
+#/buytickets command
+@tree.command(
+    name="buytickets",
+    description="Buy lottery tickets.",
+    guild=discord.Object(id=SERVER_ID)
+)
+async def buy_tickets(interaction: discord.Interaction, amount: int):
+    global lottery_state, user_balance, lottery_tickets
+    if not lottery_state['is_active']:
+        await interaction.response.send_message("There is no active lottery at the moment.", ephemeral=True)
+        return
+    user_id = str(interaction.user.id)
+    ticket_price = 10
+    total_cost = amount * ticket_price
+    if user_balance.get(user_id, 0) < total_cost:
+        await interaction.response.send_message("You do not have enough balance to buy these tickets.", ephemeral=True)
+        return
+    user_balance[user_id] -= total_cost
+    lottery_state['pot'] += total_cost
+    lottery_tickets[user_id] = lottery_tickets.get(user_id, 0) + amount
+    save_user_balance()
+    save_lottery_state(lottery_state)
+    save_lottery_tickets(lottery_tickets)
+    if lottery_state['pot'] % 100 == 0:
+        announcement_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
+        if announcement_channel:
+            await announcement_channel.send(f"🎉 The lottery pot has reached ${lottery_state['pot']}!")
+    await interaction.response.send_message(f"You have successfully purchased {amount} tickets!", ephemeral=True)
+
+
+
+#/startlottery command
+@tree.command(
+    name="startlottery",
+    description="Starts the lottery.",
+    guild=discord.Object(id=SERVER_ID)
+)
+async def start_lottery(interaction: discord.Interaction):
+    global lottery_state, lottery_tickets
+    user_id = str(interaction.user.id)
+    if user_id != str(AUTHORIZED_USER_ID):
+        await interaction.response.send_message("You are not authorized to start the lottery.", ephemeral=True)
+        return
+    if lottery_state['is_active']:
+        await interaction.response.send_message("A lottery is already active!", ephemeral=True)
+        return
+    lottery_state = {'is_active': True, 'pot': 0}
+    lottery_tickets = {}
+    save_lottery_state(lottery_state)
+    save_lottery_tickets(lottery_tickets)
+    await interaction.response.send_message("The lottery has started!", ephemeral=False)
+    announcement_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
+    if announcement_channel:
+        await announcement_channel.send("The lottery has started!\n💳 Buy your tickets now using the /buytickets command!")
+
+
+#/stoplottery command
+@tree.command(
+    name="stoplottery",
+    description="Stops the lottery and picks a winner.",
+    guild=discord.Object(id=SERVER_ID)
+)
+async def stop_lottery(interaction: discord.Interaction):
+    global lottery_state, user_balance, lottery_tickets
+    user_id = str(interaction.user.id)
+    if user_id != str(AUTHORIZED_USER_ID):
+        await interaction.response.send_message("You are not authorized to stop the lottery.", ephemeral=True)
+        return
+    if not lottery_state['is_active']:
+        await interaction.response.send_message("There is no active lottery to stop.", ephemeral=True)
+        return
+    
+    # Selecting a winner
+    tickets_pool = [(user_id, ticket_count) for user_id, ticket_count in lottery_tickets.items() for _ in range(ticket_count)]
+    if not tickets_pool:
+        await interaction.response.send_message("No tickets were sold, lottery cannot be concluded.", ephemeral=True)
+        lottery_state = {'is_active': False, 'pot': 0}
+        save_lottery_state(lottery_state)
+        return
+    winner_id, _ = random.choice(tickets_pool)
+    winner_amount = lottery_state['pot']
+    user_balance[winner_id] = user_balance.get(winner_id, 0) + winner_amount
+    lottery_state = {'is_active': False, 'pot': 0}
+    lottery_tickets = {}
+    save_user_balance()
+    save_lottery_state(lottery_state)
+    save_lottery_tickets(lottery_tickets)
+    announcement_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
+    if announcement_channel:
+        await announcement_channel.send(f"🎉 This lottery draw has concluded!\n💵 The winner is <@{winner_id}> with a prize of ${winner_amount}!")
+    await interaction.response.send_message("The lottery has been stopped and the winner has been chosen.", ephemeral=True)
+
+
 
 #/ping command
 @tree.command(
@@ -78,11 +179,11 @@ async def pay(interaction: discord.Interaction, recipient: discord.User, amount:
     if user_id not in user_balance or user_balance[user_id] < amount:
         await interaction.response.send_message("You don't have enough to transfer that amount.", ephemeral=True)
         return
+    
     user_balance[user_id] -= amount
     user_balance[recipient_id] = user_balance.get(recipient_id, 0) + amount
     save_user_balance()
     await interaction.response.send_message(f"${amount} transferred succesfully to {recipient.nick}.", ephemeral=True)
-    
 
 #USER DATA STORAGE
 
@@ -152,8 +253,6 @@ def load_lottery_state():
 def save_lottery_state(state):
     with open(lottery_state_file, 'w') as file:
         json.dump(state, file)
-    except FileNotFoundError:
-        return {}
 
 #Function to load lottery ticket balances
 def load_lottery_tickets():
@@ -167,8 +266,6 @@ def load_lottery_tickets():
 def save_lottery_tickets(tickets):
     with open(lottery_tickets_file, 'w') as file:
         json.dump(tickets, file)
-    except FileNotFoundError:
-        return {}
 
 
 user_balance = load_user_balance()
