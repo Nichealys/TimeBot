@@ -12,6 +12,7 @@ Current Progress:
 ✅ Pay Command
 ✅ Balance Command (with some glitches)
 ✅ Dollar and Green Token Minting
+✅ Lottery
 ❌ Gambling Features
 ❌ Leaderboard
 ❌ Minted Amount Counter
