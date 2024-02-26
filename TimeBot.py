@@ -153,15 +153,16 @@ async def ping(interaction):
     await interaction.response.send_message(f"Pong! Latency: {round(client.latency * 1000)}ms", ephemeral=True)
 
 @tree.command(
-    name="balance",
-    description="Shows your balance.",
+    name="inventory",
+    description="Shows a user's inventory.",
     guild=discord.Object(id=SERVER_ID)
 )
-async def balance(interaction: discord.Interaction, user: discord.User):
+async def inventory(interaction: discord.Interaction, user: discord.User):
     user_id = str(user.id)
     dollarbalance = user_balance.get(user_id, 0)
     greentokenbalance = user_green_token_balance.get(user_id, 0)
-    await interaction.response.send_message(f"**{user.nick}**\n$TIME Balance: ${dollarbalance}\nGreen Tokens: {greentokenbalance}", ephemeral=True)
+    lotteryticketbalance = lottery_tickets.get(user_id, 0)
+    await interaction.response.send_message(f"**{user.nick}**\nTD${dollarbalance}\nGreen Tokens: {greentokenbalance}\nLottery Tickets: {lotteryticketbalance}", ephemeral=True)
 
 #/pay command
 @tree.command(
