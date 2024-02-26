@@ -15,6 +15,9 @@ BOT_TOKEN = '' #The Bot Token from Discord. Enclosed in ''
 AUTHORIZED_USER_ID = #The ID of the user that should have access to admin commands.
 ANNOUNCEMENT_CHANNEL_ID = #The Channel ID where announcements (Minted Green Tokens, Milestones, Lottery, etc..)
 SERVER_ID = #ID of the server that the bot should be in.
+GREEN_TOKEN_CHANCE = 1000 #The chance that a Green Token will be minted when a user sends a message.
+LOTTERY_TICKET_PRICE = 10 #The price of a single lottery ticket
+
 
 #Set up bot, receive all intents PLEASE.
 intents = discord.Intents.all() 
@@ -62,7 +65,7 @@ async def buytickets(interaction: discord.Interaction, amount: int):
         return
     user_id = str(interaction.user.id)
     global LOTTERY_TICKET_PRICE
-    total_cost = amount * ticket_price
+    total_cost = amount * LOTTERY_TICKET_PRICE
     if user_balance.get(user_id, 0) < total_cost:
         await interaction.response.send_message("You do not have enough balance to buy these tickets.", ephemeral=True)
         return
@@ -87,7 +90,7 @@ async def buytickets(interaction: discord.Interaction, amount: int):
     guild=discord.Object(id=SERVER_ID)
 )
 async def start_lottery(interaction: discord.Interaction):
-    global lottery_state, lottery_tickets
+    global lottery_state, lottery_tickets, LOTTERY_TICKET_PRICE
     user_id = str(interaction.user.id)
     if user_id != str(AUTHORIZED_USER_ID):
         await interaction.response.send_message("You are not authorized to start the lottery.", ephemeral=True)
@@ -102,7 +105,7 @@ async def start_lottery(interaction: discord.Interaction):
     await interaction.response.send_message("The lottery has started!", ephemeral=True)
     announcement_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
     if announcement_channel:
-        await announcement_channel.send("The lottery has started!\n💳 Buy your tickets now using the /buytickets command!")
+        await announcement_channel.send(f"🎉 The lottery has started!\nBuy your tickets now for TD${LOTTERY_TICKET_PRICE} per ticket using the /buytickets command! 💳")
 
 
 #/stoplottery command
