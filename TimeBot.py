@@ -36,9 +36,16 @@ async def on_message(message):
     user_id = str(message.author.id)
     if message.guild:
         user_balance.setdefault(user_id, 0)
+        user_green_token_balance.setdefault(user_id, 0)
         message_multiplier.setdefault(user_id, 1)
         user_balance[user_id] += (1 * message_multiplier[user_id])
         save_user_balance()
+        if random.randint(1, 100) <= GREEN_TOKEN_CHANCE:
+            user_green_token_balance[user_id] += 1
+            announcement_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
+            if announcement_channel:
+                await announcement_channel.send(f"🎉 <@{user_id}> has minted a Green Token!")
+                save_user_green_token_balance()
     
 #COMMANDS
 
@@ -54,7 +61,7 @@ async def buytickets(interaction: discord.Interaction, amount: int):
         await interaction.response.send_message("There is no active lottery at the moment.", ephemeral=True)
         return
     user_id = str(interaction.user.id)
-    ticket_price = 10
+    global LOTTERY_TICKET_PRICE
     total_cost = amount * ticket_price
     if user_balance.get(user_id, 0) < total_cost:
         await interaction.response.send_message("You do not have enough balance to buy these tickets.", ephemeral=True)
@@ -69,7 +76,7 @@ async def buytickets(interaction: discord.Interaction, amount: int):
         announcement_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
         if announcement_channel:
             await announcement_channel.send(f"🎉 The lottery pot has reached TD${lottery_state['pot']}!")
-    await interaction.response.send_message(f"You have successfully purchased {amount} tickets for TD${total_cost}!", ephemeral=True)
+    await interaction.response.send_message(f"You have successfully purchased {amount} tickets for **TD${total_cost}**!", ephemeral=True)
 
 
 
@@ -131,7 +138,7 @@ async def stop_lottery(interaction: discord.Interaction):
     save_lottery_tickets(lottery_tickets)
     announcement_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
     if announcement_channel:
-        await announcement_channel.send(f"🎉 This lottery draw has concluded!\n💵 The winner is <@{winner_id}> with a prize of TD${winner_amount}!")
+        await announcement_channel.send(f"🎉 The lottery draw has concluded!\n💵 The winner is <@{winner_id}> with a prize of TD${winner_amount}!")
     await interaction.response.send_message("The lottery has been stopped and the winner has been chosen.", ephemeral=True)
 
 
