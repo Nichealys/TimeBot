@@ -230,26 +230,37 @@ async def inventory(interaction: discord.Interaction, user: discord.User):
     lotteryticketbalance = lottery_tickets.get(user_id, 0)
     await interaction.response.send_message(f"**{user.nick}**\nTD${dollarbalance}\nGreen Tokens: {greentokenbalance}\nLottery Tickets: {lotteryticketbalance}", ephemeral=True)
 
-#/pay command
+#/transfer command
 @tree.command(
-    name="pay",
-    description="Transfer money from your inventory to someone else's inventory.",
+    name="transfer",
+    description="Transfer TD$ or Green Tokens to someone else's inventory.",
     guild=discord.Object(id=SERVER_ID)
 )
-async def pay(interaction: discord.Interaction, recipient: discord.User, amount: int):
+async def transfer(interaction: discord.Interaction, recipient: discord.User, amount: int, type: Literal["Dollars", "Green Tokens"]):
     user_id = str(interaction.user.id)
     recipient_id = str(recipient.id)
-    if amount <= 0:
-        await interaction.response.send_message("Please provide a valid positive amount to transfer.", ephemeral=True)
-        return
-    if user_id not in user_balance or user_balance[user_id] < amount:
-        await interaction.response.send_message("You don't have enough to transfer that amount.", ephemeral=True)
-        return
-    
-    user_balance[user_id] -= amount
-    user_balance[recipient_id] = user_balance.get(recipient_id, 0) + amount
-    save_user_balance()
-    await interaction.response.send_message(f"TD${amount} transferred succesfully to {recipient.nick}.", ephemeral=True)
+    if type == "Dollars":
+        if amount <= 0:
+            await interaction.response.send_message("Please provide a valid positive amount to transfer.", ephemeral=True)
+            return
+        if user_id not in user_balance or user_balance[user_id] < amount:
+            await interaction.response.send_message("You don't have enough to transfer that amount.", ephemeral=True)
+            return
+        user_balance[user_id] -= amount
+        user_balance[recipient_id] = user_balance.get(recipient_id, 0) + amount
+        save_user_balance()
+        await interaction.response.send_message(f"TD${amount} transferred succesfully to {recipient.nick}.", ephemeral=True)
+    if type == "Green Tokens":
+        if amount <= 0:
+            await interaction.response.send_message("Please provide a valid positive amount to transfer.", ephemeral=True)
+            return
+        if user_id not in user_green_token_balance or user_green_token_balance[user_id] < amount:
+            await interaction.response.send_message("You don't have enough to transfer that amount.", ephemeral=True)
+            return
+        user_green_token_balance[user_id] -= amount
+        user_green_token_balance[recipient_id] = user_green_token_balance.get(recipient_id, 0) + amount
+        save_user_green_token_balance()
+        await interaction.response.send_message(f"{amount} Green Tokens transferred succesfully to {recipient.nick}.", ephemeral=True)
 
 #USER DATA STORAGE
 
