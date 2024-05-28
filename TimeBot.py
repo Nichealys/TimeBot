@@ -9,6 +9,11 @@ import os
 import random
 import time
 import hashlib
+import datetime
+import hashlib
+from datetime import datetime, timedelta
+from typing import Literal
+
 
 #Fill in particuliar info here.
 BOT_TOKEN = '' #The Bot Token from Discord. Enclosed in ''
@@ -17,6 +22,8 @@ ANNOUNCEMENT_CHANNEL_ID = #The Channel ID where announcements (Minted Green Toke
 SERVER_ID = #ID of the server that the bot should be in.
 GREEN_TOKEN_CHANCE = 1000 #The chance that a Green Token will be minted when a user sends a message.
 LOTTERY_TICKET_PRICE = 10 #The price of a single lottery ticket
+GAMBLE_WIN_PROBABILITY = 50 #The chance that a user wins when gambling through the gamble command. 1/x
+GAMBLING_GIF = ["https://tenor.com/bUqTI.gif", "https://tenor.com/qilXWf0scHP.gif", "https://tenor.com/b1Uy2.gif", "https://tenor.com/bKBOs.gif", "https://tenor.com/inlvw8b43pB.gif", "https://tenor.com/vdvl.gif"]
 
 
 #Set up bot, receive all intents PLEASE.
@@ -31,6 +38,8 @@ async def on_ready():
     await tree.sync(guild=discord.Object(id=SERVER_ID))
     print(f'Logged in as {client.user.name} succesfully!')
 
+
+
 #Minting Event (On Message)
 @client.event
 async def on_message(message):
@@ -42,15 +51,70 @@ async def on_message(message):
         user_green_token_balance.setdefault(user_id, 0)
         message_multiplier.setdefault(user_id, 1)
         user_balance[user_id] += (1 * message_multiplier[user_id])
+        global dollar_minted_amount
+        dollar_minted_amount += (1 * message_multiplier[user_id])
         save_user_balance()
-        if random.randint(1, 100) <= GREEN_TOKEN_CHANCE:
+        save_dollar_minted_amount()
+        
+        if random.randint(1, GREEN_TOKEN_CHANCE) == GREEN_TOKEN_CHANCE:
             user_green_token_balance[user_id] += 1
             announcement_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
             if announcement_channel:
                 await announcement_channel.send(f"🎉 <@{user_id}> has minted a Green Token!")
                 save_user_green_token_balance()
+        await update_status()
+
+#Update Bot Status
+async def update_status():
+    status_message = f'TD${dollar_minted_amount}'
+    await client.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=status_message))
     
-#COMMANDS
+#COMMANDS:
+    
+#/gamble command
+@tree.command(
+    name="gamble",
+    description="Gamble TD$ or Green Tokens.",
+    guild=discord.Object(id=SERVER_ID)
+)
+async def gamble(interaction: discord.Interaction, type: Literal["Green Tokens", "Dollars"], amount: int):
+    user_id = str(interaction.user.id)
+    if type == "Dollars":
+        balance = user_balance.get(user_id, 0)
+    if type == "Green Tokens":
+        balance = user_green_token_balance.get(user_id, 0)
+
+
+    if balance < amount:
+        await interaction.response.send_message("You do not have enough balance to gamble.", ephemeral=True)
+        return
+    if amount <= 0:
+        await interaction.response.send_message("Please provide a valid positive amount to gamble.", ephemeral=True)
+        return
+    
+    if type == "Dollars":
+        user_balance[user_id] -= amount
+        save_user_balance()
+    if type == "Green Tokens":
+        user_green_token_balance[user_id] -= amount
+        save_user_green_token_balance()
+    
+    win = random.randint(1, 100) <= GAMBLE_WIN_PROBABILITY
+    await interaction.response.send_message(GAMBLING_GIF[random.randint(0, (len(GAMBLING_GIF) - 1))], ephemeral=True)
+    await asyncio.sleep(1)
+    if win:
+        if type == "Dollars":
+            user_balance[user_id] += amount * 2
+            save_user_balance()
+            msg = f"You won TD${amount * 2}!"
+            await interaction.followup.send(msg, ephemeral=True)
+        if type == "Green Tokens":
+            user_green_token_balance[user_id] += amount * 2
+            save_user_green_token_balance()
+            msg = f"You won {amount * 2} Green Tokens!"
+            await interaction.followup.send(msg, ephemeral=True)
+
+    
 
 #/buytickets command
 @tree.command(
@@ -78,9 +142,8 @@ async def buytickets(interaction: discord.Interaction, amount: int):
     if lottery_state['pot'] % 100 == 0:
         announcement_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
         if announcement_channel:
-            await announcement_channel.send(f"🎉 The lottery pot has reached TD${lottery_state['pot']}!")
+            await announcement_channel.send(f"# 🎉 The lottery pot has reached TD${lottery_state['pot']}!")
     await interaction.response.send_message(f"You have successfully purchased {amount} tickets for **TD${total_cost}**!", ephemeral=True)
-
 
 
 #/startlottery command
@@ -105,7 +168,7 @@ async def start_lottery(interaction: discord.Interaction):
     await interaction.response.send_message("The lottery has started!", ephemeral=True)
     announcement_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
     if announcement_channel:
-        await announcement_channel.send(f"🎉 The lottery has started!\nBuy your tickets now for TD${LOTTERY_TICKET_PRICE} per ticket using the /buytickets command! 💳")
+        await announcement_channel.send(f"# 🎉 The lottery has started!\nBuy your tickets now for TD${LOTTERY_TICKET_PRICE} per ticket using the /buytickets command! 💳")
 
 
 #/stoplottery command
@@ -141,7 +204,7 @@ async def stop_lottery(interaction: discord.Interaction):
     save_lottery_tickets(lottery_tickets)
     announcement_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
     if announcement_channel:
-        await announcement_channel.send(f"🎉 The lottery draw has concluded!\n💵 The winner is <@{winner_id}> with a prize of TD${winner_amount}!")
+        await announcement_channel.send(f"# 🎉 The lottery draw has concluded!\n💵 The winner is <@{winner_id}> with a prize of TD${winner_amount}!")
     await interaction.response.send_message("The lottery has been stopped and the winner has been chosen.", ephemeral=True)
 
 
@@ -195,6 +258,9 @@ user_green_token_file = 'user_green_token_balances.json'
 message_multiplier_file = 'message_multiplier.json'
 lottery_state_file = 'lottery_state.json'
 lottery_tickets_file = 'lottery_tickets.json'
+dollar_minted_amount_file = 'dollar_minted_amount.json'
+
+
 
 #Function to load the user balance file.
 def load_user_balance():
@@ -239,7 +305,7 @@ def load_user_green_token_balance():
 #Function to save green token balance to the balance file.
 def save_user_green_token_balance():
     try:
-        with open(user_green_token_balance_file, 'w') as file:
+        with open(user_green_token_file, 'w') as file:
             json.dump(user_balance, file)
     except FileNotFoundError:
         return {}
@@ -270,12 +336,29 @@ def save_lottery_tickets(tickets):
     with open(lottery_tickets_file, 'w') as file:
         json.dump(tickets, file)
 
+#Function to load the minted amount of dollars
+def load_dollar_minted_amount():
+    try:
+        with open(dollar_minted_amount_file, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}
 
+#Function to save the minted amount of dollars
+def save_dollar_minted_amount():
+    try:
+        with open(dollar_minted_amount_file, 'w') as file:
+            json.dump(dollar_minted_amount, file)
+    except FileNotFoundError:
+        return {}
+    
+dollar_minted_amount = load_dollar_minted_amount()
 user_balance = load_user_balance()
 user_green_token_balance = load_user_green_token_balance()
 message_multiplier = load_message_multiplier()
 lottery_state = load_lottery_state()
 lottery_tickets = load_lottery_tickets()
+
 
 
 client.run(BOT_TOKEN)
