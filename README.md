@@ -15,10 +15,10 @@ Current Progress:
 ✅ Lottery
 ✅ Gambling Features
 ✅ Minted Amount Counter
+✅ Green Token Transferring
 ❌ Leaderboard
 ❌ Shop
 ❌ Help Command
-❌ Green Token Transferring
 ❌ Role Assignment
 ❌ API for Devs
 ❌ Green Token Property Purchasing
