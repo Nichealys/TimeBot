@@ -236,7 +236,7 @@ async def inventory(interaction: discord.Interaction, user: discord.User):
     description="Transfer TD$ or Green Tokens to someone else's inventory.",
     guild=discord.Object(id=SERVER_ID)
 )
-async def transfer(interaction: discord.Interaction, recipient: discord.User, amount: int, type: Literal["Dollars", "Green Tokens"]):
+async def transfer(interaction: discord.Interaction, amount: int, type: Literal["Dollars", "Green Tokens"], recipient: discord.User):
     user_id = str(interaction.user.id)
     recipient_id = str(recipient.id)
     if type == "Dollars":
