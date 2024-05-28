@@ -306,7 +306,7 @@ def load_user_green_token_balance():
 def save_user_green_token_balance():
     try:
         with open(user_green_token_file, 'w') as file:
-            json.dump(user_balance, file)
+            json.dump(user_green_token_balance, file)
     except FileNotFoundError:
         return {}
 
