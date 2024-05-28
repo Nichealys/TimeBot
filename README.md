@@ -13,13 +13,14 @@ Current Progress:
 ✅ Balance Command (with some glitches)
 ✅ Dollar and Green Token Minting
 ✅ Lottery
-❌ Gambling Features
+✅ Gambling Features
+✅ Minted Amount Counter
 ❌ Leaderboard
-❌ Minted Amount Counter
 ❌ Shop
 ❌ Help Command
 ❌ Green Token Transferring
 ❌ Role Assignment
 ❌ API for Devs
+❌ Green Token Property Purchasing
 
 Make a pull request, you'll get tax $ back
