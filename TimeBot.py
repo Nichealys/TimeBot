@@ -95,7 +95,7 @@ async def leaderboard(interaction: discord.Interaction):
     description="Gamble TD$ or Green Tokens.",
     guild=discord.Object(id=SERVER_ID)
 )
-async def gamble(interaction: discord.Interaction, type: Literal["Green Tokens", "Dollars"], amount: int):
+async def gamble(interaction: discord.Interaction, amount: int, type: Literal["Green Tokens", "Dollars"]):
     user_id = str(interaction.user.id)
     if type == "Dollars":
         balance = user_balance.get(user_id, 0)
