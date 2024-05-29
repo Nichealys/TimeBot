@@ -10,7 +10,7 @@ Current Progress:
 ✅ User Balances
 ✅ Green Token Balances
 ✅ Pay Command
-✅ Balance Command (with some glitches)
+✅ Inventory Command
 ✅ Dollar and Green Token Minting
 ✅ Lottery
 ✅ Gambling Features
