@@ -85,7 +85,7 @@ async def leaderboard(interaction: discord.Interaction):
     for user_id, balance in sorted_users:
         user = guild.get_member(int(user_id))
         if user:
-            leaderboard_text += f"{position}. {user.display_name} - TD${balance}\n"
+            leaderboard_text += f"{position}. **{user.display_name}** - TD${balance}, {user_green_token_balance.get(user_id, 0)} Green Tokens, {lottery_tickets.get(user.id, 0)} Lottery Tickets\n"
             position += 1
     await interaction.response.send_message(leaderboard_text, ephemeral=True)
 
