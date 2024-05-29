@@ -71,6 +71,24 @@ async def update_status():
     
 #COMMANDS:
     
+#/leaderboard command
+@tree.command(
+    name="leaderboard",
+    description="Displays a Leaderboard, ranking users from highest to lowest TD$ balance.",
+    guild=discord.Object(id=SERVER_ID)
+)
+async def leaderboard(interaction: discord.Interaction):
+    sorted_users = sorted(user_balance.items(), key=lambda item: (item[1], user_green_token_balance.get(item[0], 0)), reverse=True)
+    leaderboard_text = "**Leaderboard**\n"
+    position = 1
+    guild = client.get_guild(SERVER_ID)
+    for user_id, balance in sorted_users:
+        user = guild.get_member(int(user_id))
+        if user:
+            leaderboard_text += f"{position}. {user.display_name} - TD${balance}\n"
+            position += 1
+    await interaction.response.send_message(leaderboard_text, ephemeral=True)
+
 #/gamble command
 @tree.command(
     name="gamble",
@@ -186,7 +204,6 @@ async def stop_lottery(interaction: discord.Interaction):
     if not lottery_state['is_active']:
         await interaction.response.send_message("There is no active lottery to stop.", ephemeral=True)
         return
-    
     # Selecting a winner
     tickets_pool = [(user_id, ticket_count) for user_id, ticket_count in lottery_tickets.items() for _ in range(ticket_count)]
     if not tickets_pool:
@@ -228,7 +245,7 @@ async def inventory(interaction: discord.Interaction, user: discord.User):
     dollarbalance = user_balance.get(user_id, 0)
     greentokenbalance = user_green_token_balance.get(user_id, 0)
     lotteryticketbalance = lottery_tickets.get(user_id, 0)
-    await interaction.response.send_message(f"**{user.nick}**\nTD${dollarbalance}\nGreen Tokens: {greentokenbalance}\nLottery Tickets: {lotteryticketbalance}", ephemeral=True)
+    await interaction.response.send_message(f"**{user.display_name}**\nTD${dollarbalance}\nGreen Tokens: {greentokenbalance}\nLottery Tickets: {lotteryticketbalance}", ephemeral=True)
 
 #/transfer command
 @tree.command(
@@ -249,7 +266,7 @@ async def transfer(interaction: discord.Interaction, amount: int, type: Literal[
         user_balance[user_id] -= amount
         user_balance[recipient_id] = user_balance.get(recipient_id, 0) + amount
         save_user_balance()
-        await interaction.response.send_message(f"TD${amount} transferred succesfully to {recipient.nick}.", ephemeral=True)
+        await interaction.response.send_message(f"TD${amount} transferred succesfully to {recipient.display_name}.", ephemeral=True)
     if type == "Green Tokens":
         if amount <= 0:
             await interaction.response.send_message("Please provide a valid positive amount to transfer.", ephemeral=True)
@@ -260,7 +277,7 @@ async def transfer(interaction: discord.Interaction, amount: int, type: Literal[
         user_green_token_balance[user_id] -= amount
         user_green_token_balance[recipient_id] = user_green_token_balance.get(recipient_id, 0) + amount
         save_user_green_token_balance()
-        await interaction.response.send_message(f"{amount} Green Tokens transferred succesfully to {recipient.nick}.", ephemeral=True)
+        await interaction.response.send_message(f"{amount} Green Tokens transferred succesfully to {recipient.display_name}.", ephemeral=True)
 
 #USER DATA STORAGE
 
