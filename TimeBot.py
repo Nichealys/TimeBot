@@ -131,6 +131,9 @@ async def gamble(interaction: discord.Interaction, type: Literal["Green Tokens",
             save_user_green_token_balance()
             msg = f"You won {amount * 2} Green Tokens!"
             await interaction.followup.send(msg, ephemeral=True)
+    else:
+        msg = f"You lost... :["
+        await interaction.followup.send(msg, ephemeral=True)
 
     
 
