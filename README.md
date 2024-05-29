@@ -16,7 +16,7 @@ Current Progress:
 ✅ Gambling Features
 ✅ Minted Amount Counter
 ✅ Green Token Transferring
-❌ Leaderboard
+✅ Leaderboard
 ❌ Shop
 ❌ Help Command
 ❌ Role Assignment
