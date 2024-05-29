@@ -70,7 +70,17 @@ async def update_status():
     await client.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=status_message))
     
 #COMMANDS:
-    
+
+#/pot command
+@tree.command(
+    name="pot",
+    description="Displays the current lottery pot.",
+    guild=discord.Object(id=SERVER_ID)
+)
+async def pot(interaction: discord.Interaction):
+    lottery_pot = str(lottery_state["pot"])
+    await interaction.response.send_message("The current pot is TD$" + lottery_pot + "!")
+
 #/leaderboard command
 @tree.command(
     name="leaderboard",
